@@ -1,5 +1,5 @@
 Name:		android-tools
-Version:	8.0.0
+Version:	10.0.0
 Release:	1%{?dist}
 Summary:	Some tools from android
 
