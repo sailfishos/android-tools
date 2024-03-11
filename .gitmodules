@@ -1,3 +1,3 @@
-[submodule "core"]
-	path = core
-	url = https://android.googlesource.com/platform/system/core
+[submodule "android-tools"]
+	path = android-tools
+	url = https://github.com/nmeum/android-tools.git

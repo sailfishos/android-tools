@@ -1,0 +1,73 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Tue, 12 Mar 2024 10:55:03 +0200
+Subject: [PATCH] Disable unwanted programs
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+---
+ vendor/CMakeLists.txt | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/vendor/CMakeLists.txt b/vendor/CMakeLists.txt
+index 25516c8fa2983aa4f8288725093cc939de7e613f..3f392b8137439bf309a3a735c2a86635f58423fa 100644
+--- a/vendor/CMakeLists.txt
++++ b/vendor/CMakeLists.txt
+@@ -43,7 +43,7 @@ add_compile_definitions(_FILE_OFFSET_BITS=64 _LARGEFILE64_SOURCE)
+ 
+ set(android-vendored
+ 	avb
+-	adb
++#	adb
+ 	base
+ 	core
+ 	extras
+@@ -57,8 +57,8 @@ set(android-vendored
+ 	f2fs-tools
+ 	e2fsprogs
+ 	incremental_delivery
+-	fmtlib
+-	boringssl)
++	fmtlib)
++#	boringssl)
+ 
+ # XXX: Consider using https://cmake.org/cmake/help/v3.0/module/ExternalProject.html
+ 
+@@ -91,13 +91,13 @@ if(ANDROID_TOOLS_PATCH_VENDOR AND EXISTS "${ANDROID_PATCH_DIR}/")
+ 	endforeach(v)
+ endif()
+ 
+-add_subdirectory(boringssl EXCLUDE_FROM_ALL)
++#add_subdirectory(boringssl EXCLUDE_FROM_ALL)
+ add_subdirectory(fmtlib EXCLUDE_FROM_ALL)
+ 
+ find_package(PkgConfig REQUIRED)
+-pkg_check_modules(libbrotlicommon REQUIRED IMPORTED_TARGET libbrotlicommon)
+-pkg_check_modules(libbrotlidec REQUIRED IMPORTED_TARGET libbrotlidec)
+-pkg_check_modules(libbrotlienc REQUIRED IMPORTED_TARGET libbrotlienc)
++#pkg_check_modules(libbrotlicommon REQUIRED IMPORTED_TARGET libbrotlicommon)
++#pkg_check_modules(libbrotlidec REQUIRED IMPORTED_TARGET libbrotlidec)
++#pkg_check_modules(libbrotlienc REQUIRED IMPORTED_TARGET libbrotlienc)
+ pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
+ pkg_check_modules(libpcre2-8 REQUIRED IMPORTED_TARGET libpcre2-8)
+ pkg_check_modules(libusb-1.0 REQUIRED IMPORTED_TARGET libusb-1.0)
+@@ -119,7 +119,7 @@ include(CMakeLists.libbase.txt)
+ include(CMakeLists.libcutils.txt)
+ include(CMakeLists.libdiagnoseusb.txt)
+ include(CMakeLists.libandroidfw.txt)
+-include(CMakeLists.adb.txt)
++#include(CMakeLists.adb.txt)
+ include(CMakeLists.sparse.txt)
+ include(CMakeLists.fastboot.txt)
+ include(CMakeLists.f2fstools.txt)
+@@ -132,7 +132,7 @@ include(CMakeLists.avb.txt)
+ # Targets which should be installed by `make install`.
+ install(TARGETS
+ 	"${ANDROID_MKE2FS_NAME}"
+-	adb
++#	adb
+ 	append2simg
+ 	fastboot
+ 	img2simg

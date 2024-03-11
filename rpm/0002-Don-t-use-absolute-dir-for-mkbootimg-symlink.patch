@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Thu, 14 Mar 2024 08:32:06 +0200
+Subject: [PATCH] Don't use absolute dir for mkbootimg symlink
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+I noticed that the absolute symlink did not work on my system.
+While investigating I noticed that on SUSE the symlink gets relinked
+to be relative to be relative to the install location of the symlink
+after which the link works.
+Using a relative link seems safer to me.
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+(cherry picked from commit ab174679bf1f452a172a5d05f17ea14abf24b3fc)
+---
+ vendor/CMakeLists.mkbootimg.txt | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/vendor/CMakeLists.mkbootimg.txt b/vendor/CMakeLists.mkbootimg.txt
+index 440298b066d6d8bb6649bfdadd68dd1e535622d1..b82e93c749796486fc639a7a8e8fa98c042e34ee 100644
+--- a/vendor/CMakeLists.mkbootimg.txt
++++ b/vendor/CMakeLists.mkbootimg.txt
+@@ -1,9 +1,9 @@
+-set(MKBOOTIMG_SCRIPTS_DIR "${CMAKE_INSTALL_FULL_DATADIR}/android-tools/mkbootimg")
++set(MKBOOTIMG_SCRIPTS_DIR ${CMAKE_INSTALL_DATADIR}/android-tools/mkbootimg)
+ install(PROGRAMS mkbootimg/mkbootimg.py DESTINATION ${MKBOOTIMG_SCRIPTS_DIR})
+ add_custom_target(mkbootimg_symlink ALL COMMAND ${CMAKE_COMMAND} -E create_symlink
+-	${MKBOOTIMG_SCRIPTS_DIR}/mkbootimg.py
++	../${MKBOOTIMG_SCRIPTS_DIR}/mkbootimg.py
+ 	${CMAKE_CURRENT_BINARY_DIR}/mkbootimg)
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mkbootimg DESTINATION bin)
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mkbootimg DESTINATION ${CMAKE_INSTALL_BINDIR})
+ install(FILES mkbootimg/gki/generate_gki_certificate.py DESTINATION ${MKBOOTIMG_SCRIPTS_DIR}/gki)
+-install(PROGRAMS mkbootimg/unpack_bootimg.py DESTINATION bin RENAME unpack_bootimg)
+-install(PROGRAMS mkbootimg/repack_bootimg.py DESTINATION bin RENAME repack_bootimg)
++install(PROGRAMS mkbootimg/unpack_bootimg.py DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME unpack_bootimg)
++install(PROGRAMS mkbootimg/repack_bootimg.py DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME repack_bootimg)
