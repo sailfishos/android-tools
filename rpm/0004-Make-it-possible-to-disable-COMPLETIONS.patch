@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Mon, 18 Mar 2024 12:41:51 +0200
+Subject: [PATCH] Make it possible to disable COMPLETIONS
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+---
+ CMakeLists.txt        | 3 +++
+ vendor/CMakeLists.txt | 8 +++++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3fc0e7d3134392f9802956924a23138c1b709ac2..6e7c0e7e1f8a03908529d1cd91681acdfc379c44 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -11,8 +11,11 @@ include(GNUInstallDirs)
+ option(ANDROID_TOOLS_PATCH_VENDOR "Patch vendor projects using patches directory" ON)
+ 
+ # Install bash/zsh completion files.
++option(COMPLETIONS "Package zsh/bash completions" ON)
++if(COMPLETIONS)
+ set(COMPLETION_COMMON_DIR "${CMAKE_INSTALL_FULL_DATADIR}/android-tools/completions")
+ add_subdirectory(completions)
++endif()
+ 
+ # Android provides it's own version of mke2fs which is incompatible with
+ # the version shipped by e2fsprogs. To prevent a name clash we install
+diff --git a/vendor/CMakeLists.txt b/vendor/CMakeLists.txt
+index 5eccd7add3914a160204ec62c4fe9edc0c51222a..1b424950c7b8571b239183a9fd788f5acbbbd801 100644
+--- a/vendor/CMakeLists.txt
++++ b/vendor/CMakeLists.txt
+@@ -149,9 +149,11 @@ if(NOT APPLE)
+ 		DESTINATION bin)
+ endif()
+ 
+-# Install common completion files.
+-install(FILES adb/adb.bash RENAME adb DESTINATION "${COMPLETION_COMMON_DIR}")
+-install(FILES core/fastboot/fastboot.bash RENAME fastboot DESTINATION "${COMPLETION_COMMON_DIR}")
++if(COMPLETIONS)
++	# Install common completion files.
++	install(FILES adb/adb.bash RENAME adb DESTINATION "${COMPLETION_COMMON_DIR}")
++	install(FILES core/fastboot/fastboot.bash RENAME fastboot DESTINATION "${COMPLETION_COMMON_DIR}")
++endif()
+ 
+ # Install license files.
+ # Disabled for now, see https://github.com/nmeum/android-tools/issues/30#issuecomment-855365636

@@ -1,0 +1,8 @@
+* Mon Dec 16 2019 Matti Kosola <matti.kosola@jolla.com> - 10.0.0+git1
+- [android-tools] Update for Android 10.0.0 Release 20 (QQ1C.191205.016.A1). JB#48099
+
+* Thu Feb 15 2018 Matti Kosola <matti.kosola@jollamobile.com> - 8.0.0+git2
+- [android-tools] Remove -new suffix from binary names. JB#41129
+
+* Thu Jan 18 2018 Matti Kosola <matti.kosola@jolla.com> - 8.0.0+git1
+- [android-tools] Initial packaging. JB#40810
