@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Tue, 12 Mar 2024 10:40:59 +0200
+Subject: [PATCH] Allow to use patch instead of git to apply patches
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+(cherry picked from commit 1bebaad9ee381dc7c28f9c0da07dcd8bc249ed22)
+---
+ vendor/CMakeLists.txt | 30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
+
+diff --git a/vendor/CMakeLists.txt b/vendor/CMakeLists.txt
+index 23488458f5ad346190f930864893e9f6e8e25ace..5f185d8af0d1b172f8ab5305c4845d55085ac73d 100644
+--- a/vendor/CMakeLists.txt
++++ b/vendor/CMakeLists.txt
+@@ -58,19 +58,33 @@ set(android-vendored
+ 	boringssl)
+ 
+ # XXX: Consider using https://cmake.org/cmake/help/v3.0/module/ExternalProject.html
++
++find_package(Git)
++if(GIT_FOUND)
++	list(APPEND PATCH_PROGRAM ${GIT_EXECUTABLE} am)
++else()
++	find_program(PATCH_EXECUTABLE patch REQUIRED)
++	list(APPEND PATCH_PROGRAM ${PATCH_EXECUTABLE} -p1 -i)
++endif()
++
+ if(ANDROID_TOOLS_PATCH_VENDOR AND EXISTS "${ANDROID_PATCH_DIR}/")
+-	execute_process(COMMAND git submodule --quiet update)
++	if(GIT_FOUND)
++		execute_process(COMMAND git submodule --quiet update)
++	endif()
+ 	foreach(v ${android-vendored})
+ 		file(GLOB patches ${ANDROID_PATCH_DIR}/${v}/*.patch)
+ 		if(patches)
+ 			message(STATUS "Applying patches for: ${v}")
+-			execute_process(COMMAND git -C
+-				${CMAKE_CURRENT_SOURCE_DIR}/${v} am ${patches}
+-				RESULT_VARIABLE ret)
+-			if(NOT "${ret}" STREQUAL "0")
+-				message(FATAL_ERROR "Couldn't apply patches for ${v}")
+-			endif()
+-		endif(patches)
++			foreach(patch ${patches})
++				execute_process(COMMAND ${PATCH_PROGRAM} ${patch}
++					WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${v}
++					RESULT_VARIABLE ret
++				COMMAND_ECHO STDOUT)
++				if(NOT "${ret}" STREQUAL "0")
++					message(FATAL_ERROR "Couldn't apply patches for ${v}, ${ret}")
++				endif()
++			endforeach()
++		endif()
+ 	endforeach(v)
+ endif()
+ 

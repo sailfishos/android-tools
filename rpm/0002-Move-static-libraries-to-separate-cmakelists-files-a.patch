@@ -1,0 +1,210 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Wed, 13 Mar 2024 00:12:04 +0200
+Subject: [PATCH] Move static libraries to separate cmakelists files and add
+ includes
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Some static cmake libraries where only present inside the adb
+CMakeLists which did not seem right and makes builds without adb fail.
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+---
+ vendor/CMakeLists.adb.txt            | 60 ----------------------------
+ vendor/CMakeLists.fastboot.txt       |  1 +
+ vendor/CMakeLists.libbase.txt        |  2 +-
+ vendor/CMakeLists.libcutils.txt      | 34 ++++++++++++++++
+ vendor/CMakeLists.libdiagnoseusb.txt |  7 ++++
+ vendor/CMakeLists.liblog.txt         | 16 ++++++++
+ vendor/CMakeLists.txt                |  3 ++
+ 7 files changed, 62 insertions(+), 61 deletions(-)
+ create mode 100644 vendor/CMakeLists.libcutils.txt
+ create mode 100644 vendor/CMakeLists.libdiagnoseusb.txt
+ create mode 100644 vendor/CMakeLists.liblog.txt
+
+diff --git a/vendor/CMakeLists.adb.txt b/vendor/CMakeLists.adb.txt
+index 4196bc01fbf31db6886239db23852bbd24e60808..a0c70b9d6253317716599af8ead65fdc2084e428 100644
+--- a/vendor/CMakeLists.adb.txt
++++ b/vendor/CMakeLists.adb.txt
+@@ -88,66 +88,6 @@ target_include_directories(libadb_tls_connection_defaults PUBLIC
+ 	boringssl/include
+ 	libbase/include)
+ 
+-add_library(liblog STATIC
+-	logging/liblog/log_event_list.cpp
+-	logging/liblog/log_event_write.cpp
+-	logging/liblog/logger_name.cpp
+-	logging/liblog/logger_read.cpp
+-	logging/liblog/logger_write.cpp
+-	logging/liblog/properties.cpp
+-	logging/liblog/logprint.cpp)
+-
+-target_compile_definitions(liblog PRIVATE
+-	-DLIBLOG_LOG_TAG=1006 -D_XOPEN_SOURCE=700 -DFAKE_LOG_DEVICE=1)
+-target_include_directories(liblog PUBLIC
+-	core/include
+-	logging/liblog/include
+-	core/libcutils/include
+-	libbase/include)
+-
+-set(libcutils_SOURCES
+-	core/libcutils/android_get_control_file.cpp
+-	core/libcutils/ashmem-host.cpp
+-	core/libcutils/config_utils.cpp
+-	core/libcutils/fs.cpp
+-	core/libcutils/hashmap.cpp
+-	core/libcutils/iosched_policy.cpp
+-	core/libcutils/load_file.cpp
+-	core/libcutils/multiuser.cpp
+-	core/libcutils/native_handle.cpp
+-	core/libcutils/properties.cpp
+-	core/libcutils/record_stream.cpp
+-	core/libcutils/socket_inaddr_any_server_unix.cpp
+-	core/libcutils/socket_local_client_unix.cpp
+-	core/libcutils/socket_local_server_unix.cpp
+-	core/libcutils/socket_network_client_unix.cpp
+-	core/libcutils/sockets_unix.cpp
+-	core/libcutils/sockets.cpp
+-	core/libcutils/str_parms.cpp
+-	core/libcutils/strlcpy.c
+-	core/libcutils/trace-host.cpp)
+-
+-if (NOT APPLE AND NOT WIN32)
+-	list(APPEND libcutils_SOURCES
+-		core/libcutils/canned_fs_config.cpp
+-		core/libcutils/fs_config.cpp)
+-endif()
+-
+-add_library(libcutils STATIC ${libcutils_SOURCES})
+-target_compile_definitions(libcutils PRIVATE -D_GNU_SOURCE)
+-target_include_directories(libcutils PRIVATE
+-	logging/liblog/include core/libutils/include)
+-target_include_directories(libcutils PUBLIC
+-	core/libcutils/include libbase/include)
+-
+-add_library(libdiagnoseusb STATIC
+-	core/diagnose_usb/diagnose_usb.cpp)
+-target_include_directories(libdiagnoseusb PUBLIC
+-	core/diagnose_usb/include)
+-
+-target_include_directories(libdiagnoseusb PUBLIC
+-	core/include libbase/include)
+-
+ add_library(libadb_sysdeps STATIC
+ 	adb/sysdeps/env.cpp)
+ target_include_directories(libadb_sysdeps PUBLIC
+diff --git a/vendor/CMakeLists.fastboot.txt b/vendor/CMakeLists.fastboot.txt
+index 83d926323de76c74f1d8ed0570fef76c54d5964c..d5fa28672d62180d30701667e047001af09cb274 100644
+--- a/vendor/CMakeLists.fastboot.txt
++++ b/vendor/CMakeLists.fastboot.txt
+@@ -129,6 +129,7 @@ target_include_directories(fastboot PRIVATE
+ 	libbase/include core/include core/adb core/libsparse/include
+ 	extras/ext4_utils/include extras/f2fs_utils
+ 	core/libziparchive/include mkbootimg/include/bootimg
++	core/diagnose_usb/include
+ 	core/fs_mgr/liblp/include core/fs_mgr/libstorage_literals avb)
+ target_compile_definitions(fastboot PRIVATE
+ 	-D_GNU_SOURCE -D_XOPEN_SOURCE=700 -DUSE_F2FS
+diff --git a/vendor/CMakeLists.libbase.txt b/vendor/CMakeLists.libbase.txt
+index 91bd84905cf6fe918be6a9edfcabf3d419146e27..95d47d3a5f6d14b4f6ebc313569df5bc9db90a4a 100644
+--- a/vendor/CMakeLists.libbase.txt
++++ b/vendor/CMakeLists.libbase.txt
+@@ -18,5 +18,5 @@ add_library(libbase STATIC
+     libbase/errors_unix.cpp)
+ 
+ target_include_directories(libbase PUBLIC
+-	libbase/include core/include)
++	libbase/include core/include logging/liblog/include)
+ target_link_libraries(libbase PUBLIC fmt::fmt liblog)
+diff --git a/vendor/CMakeLists.libcutils.txt b/vendor/CMakeLists.libcutils.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ac81080d023f29611d2f745fb22eac7c7745f494
+--- /dev/null
++++ b/vendor/CMakeLists.libcutils.txt
+@@ -0,0 +1,34 @@
++set(libcutils_SOURCES
++	core/libcutils/android_get_control_file.cpp
++	core/libcutils/ashmem-host.cpp
++	core/libcutils/config_utils.cpp
++	core/libcutils/fs.cpp
++	core/libcutils/hashmap.cpp
++	core/libcutils/iosched_policy.cpp
++	core/libcutils/load_file.cpp
++	core/libcutils/multiuser.cpp
++	core/libcutils/native_handle.cpp
++	core/libcutils/properties.cpp
++	core/libcutils/record_stream.cpp
++	core/libcutils/socket_inaddr_any_server_unix.cpp
++	core/libcutils/socket_local_client_unix.cpp
++	core/libcutils/socket_local_server_unix.cpp
++	core/libcutils/socket_network_client_unix.cpp
++	core/libcutils/sockets_unix.cpp
++	core/libcutils/sockets.cpp
++	core/libcutils/str_parms.cpp
++	core/libcutils/strlcpy.c
++	core/libcutils/trace-host.cpp)
++
++if (NOT APPLE AND NOT WIN32)
++	list(APPEND libcutils_SOURCES
++		core/libcutils/canned_fs_config.cpp
++		core/libcutils/fs_config.cpp)
++endif()
++
++add_library(libcutils STATIC ${libcutils_SOURCES})
++target_compile_definitions(libcutils PRIVATE -D_GNU_SOURCE)
++target_include_directories(libcutils PRIVATE
++	logging/liblog/include core/libutils/include)
++target_include_directories(libcutils PUBLIC
++	core/libcutils/include libbase/include)
+diff --git a/vendor/CMakeLists.libdiagnoseusb.txt b/vendor/CMakeLists.libdiagnoseusb.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..e458507ac2277639ed95f0eb20d466d9ef61d94e
+--- /dev/null
++++ b/vendor/CMakeLists.libdiagnoseusb.txt
+@@ -0,0 +1,7 @@
++add_library(libdiagnoseusb STATIC
++	core/diagnose_usb/diagnose_usb.cpp)
++target_include_directories(libdiagnoseusb PUBLIC
++	core/diagnose_usb/include)
++
++target_include_directories(libdiagnoseusb PUBLIC
++	core/include libbase/include)
+diff --git a/vendor/CMakeLists.liblog.txt b/vendor/CMakeLists.liblog.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf45cb8fd894219b4dcbf1249a2d328c03c08603
+--- /dev/null
++++ b/vendor/CMakeLists.liblog.txt
+@@ -0,0 +1,16 @@
++add_library(liblog STATIC
++	logging/liblog/log_event_list.cpp
++	logging/liblog/log_event_write.cpp
++	logging/liblog/logger_name.cpp
++	logging/liblog/logger_read.cpp
++	logging/liblog/logger_write.cpp
++	logging/liblog/properties.cpp
++	logging/liblog/logprint.cpp)
++
++target_compile_definitions(liblog PRIVATE
++	-DLIBLOG_LOG_TAG=1006 -D_XOPEN_SOURCE=700 -DFAKE_LOG_DEVICE=1)
++target_include_directories(liblog PUBLIC
++	core/include
++	logging/liblog/include
++	core/libcutils/include
++	libbase/include)
+diff --git a/vendor/CMakeLists.txt b/vendor/CMakeLists.txt
+index 5f185d8af0d1b172f8ab5305c4845d55085ac73d..1a79a4d3f54fd244c341b5694867471e41f02c65 100644
+--- a/vendor/CMakeLists.txt
++++ b/vendor/CMakeLists.txt
+@@ -111,7 +111,10 @@ check_symbol_exists(reallocarray "stdlib.h" HAVE_REALLOCARRAY)
+ include_directories(${PROTOBUF_INCLUDE_DIRS})
+ include_directories(${CMAKE_CURRENT_BINARY_DIR})
+ 
++include(CMakeLists.liblog.txt)
+ include(CMakeLists.libbase.txt)
++include(CMakeLists.libcutils.txt)
++include(CMakeLists.libdiagnoseusb.txt)
+ include(CMakeLists.adb.txt)
+ include(CMakeLists.sparse.txt)
+ include(CMakeLists.fastboot.txt)
