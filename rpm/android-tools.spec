@@ -61,8 +61,8 @@ It includes tools that interface with the Android platform.
 %package mkbootimg
 Summary:        Android boot.img manipulation tools
 Requires:       %{name} = %{version}
-Provides:       android-tools-hadk-bootimg <= %{obsole_android_tools_hadk_ver}
-Obsoletes:      android-tools-hadk-bootimg < %{obsole_android_tools_hadk_ver}
+Provides:       android-tools-hadk-bootimg > %{obsolete_android_tools_hadk_ver}
+Obsoletes:      android-tools-hadk-bootimg <= %{obsolete_android_tools_hadk_ver}
 BuildArch:      noarch
 
 %description mkbootimg
